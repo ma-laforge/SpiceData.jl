@@ -7,12 +7,14 @@ Base.show(io::IO, ::LittleEndian) = print(io, "LittleEndian")
 Base.showcompact(io::IO, ::SpiceFormat) = print(io, "Format:Unknown")
 Base.showcompact(io::IO, ::Format_9601) = print(io, "SPICE:9601")
 Base.showcompact(io::IO, ::Format_9602) = print(io, "CppSim:9602")
+Base.showcompact(io::IO, ::Format_2001) = print(io, "SPICE:2001")
+Base.showcompact(io::IO, ::Format_2013) = print(io, "SPICE:2013")
 
 Base.show(io::IO, fmt::Format_Unknown) = showcompact(io, fmt)
 
 function Base.show(io::IO, fmt::SpiceFormat)
 	showcompact(io, fmt)
-	print(io, " (x: $(xtype(fmt))[], y: $(xtype(fmt))[])")
+	print(io, " (x: $(xtype(fmt))[], y: $(ytype(fmt))[])")
 end
 
 function Base.showcompact(io::IO, r::DataReader)

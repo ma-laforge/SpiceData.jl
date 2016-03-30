@@ -39,6 +39,8 @@ abstract SpiceFormat
 immutable Format_Unknown <: SpiceFormat; end
 immutable Format_9601 <: SpiceFormat; end #x: 32-bit floats, y: 32-bit floats
 immutable Format_9602 <: SpiceFormat; end #x: 64-bit floats, y: 64-bit floats
+immutable Format_2001 <: SpiceFormat; end #x: 64-bit floats, y: 64-bit floats
+immutable Format_2013 <: SpiceFormat; end #x: 64-bit floats, y: 32-bit floats
 #=Comment:
 I believe 9602 is a non-standard format used by CppSim.
 =#
@@ -120,6 +122,12 @@ ytype(::Format_9601) = Float32
 
 xtype(::Format_9602) = Float64
 ytype(::Format_9602) = Float64
+
+xtype(::Format_2001) = Float64
+ytype(::Format_2001) = Float64
+
+xtype(::Format_2013) = Float64
+ytype(::Format_2013) = Float32
 
 #-------------------------------------------------------------------------------
 _reorder{T}(v::T, ::BigEndian) = ntoh(v)
@@ -266,6 +274,10 @@ function _read(r::BlockReader, ::Type{SpiceFormat})
 			return Format_9601()
 		elseif 9602 == version
 			return Format_9602()
+		elseif 2001 == version
+			return Format_2001()
+		elseif 2013 == version
+			return Format_2013()
 		end
 	end
 
@@ -367,10 +379,11 @@ function _open(filepath::AbstractString)
 
 	try
 		count1 = parse(Int, count1)
+		count2 = parse(Int, count2)
 	catch
 		throw("Invalid signal count.")
 	end
-	datacolumns = Int(count1)
+	datacolumns = Int(count1)+Int(count2)
 
 	#Read in file format:
 	format = _read(blkreader, SpiceFormat)

@@ -30,6 +30,8 @@ SpiceData currently supports the following SPICE file formats:
 
  - 9601 (32-bit x-values & 32-bit y-values)
  - 9602 (CppSim-specific format? 64-bit x-values & 64-bit y-values?)
+ - 2001 (64-bit x-values & 64-bit y-values)
+ - 2013 (64-bit x-values & 32-bit y-values)
 
 ### Compatibility
 
