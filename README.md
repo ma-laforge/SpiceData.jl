@@ -1,5 +1,7 @@
 # SpiceData.jl
 
+[![Build Status](https://travis-ci.org/ma-laforge/SpiceData.jl.svg?branch=master)](https://travis-ci.org/ma-laforge/SpiceData.jl)
+
 ## Description
 
 The SpiceData.jl module provides a pure-Julia SPICE data file reader inspired by Michael H. Perrott's CppSim reader.
