@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 
 using SpiceData
-import CppSimData
+include("importCppSimData.jl")
 
 #No real test code yet... just demonstrate use:
 
