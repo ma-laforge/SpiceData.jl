@@ -8,12 +8,12 @@ The SpiceData.jl module provides a pure-Julia SPICE data file reader inspired by
 
 ## Sample Usage
 
-Examples on how to use the SpiceData.jl capabilities can be found under the [test directory](test/).
+Examples on how to use the SpiceData.jl capabilities can be found under the [sample directory](sample/).
 
 <a name="Installation"></a>
 ## Installation
 
-		julia> Pkg.clone("https://github.com/ma-laforge/SpiceData.jl.git")
+		julia> Pkg.add("SpiceData")
 
 ## Resources/Acknowledgments
 
@@ -39,8 +39,4 @@ SpiceData currently supports the following SPICE file formats:
 
 Extensive compatibility testing of SpiceData.jl has not been performed.  The module has been tested using the following environment(s):
 
- - Linux / Julia-0.4.2 (64-bit)
-
-## Disclaimer
-
-This software is provided "as is", with no guarantee of correctness.  Use at own risk.
+ - Linux / Julia-0.4.5 (64-bit)
