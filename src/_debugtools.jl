@@ -56,7 +56,7 @@ end
 
 #==Main functions
 ===============================================================================#
-function dumpsegments(io::IO, filepath::AbstractString)
+function dumpsegments(io::IO, filepath::String)
 	r = open(filepath)
 	blockcount = 0
 	totalsize = 0
@@ -79,6 +79,6 @@ function dumpsegments(io::IO, filepath::AbstractString)
 	println(io, "Blocks read: $blockcount, total size: $totalsize.")
 end
 
-dumpsegments(filepath::AbstractString) = dumpsegments(STDOUT, filepath)
+dumpsegments(filepath::String) = dumpsegments(STDOUT, filepath)
 
 end #module

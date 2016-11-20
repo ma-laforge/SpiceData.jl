@@ -19,7 +19,7 @@ include("show.jl")
 
 #==Un-"exported" symbols
 ================================================================================
-	_open(filepath::AbstractString)::DataReader
+	_open(filepath::String)::DataReader
 ==#
 
 
@@ -28,7 +28,7 @@ include("show.jl")
 #Already in base:
 	Base.names(reader::DataReader)
 	Base.read(reader::DataReader, signum::Int)
-	Base.read(reader::DataReader, signame::ASCIIString)
+	Base.read(reader::DataReader, signame::String)
 ==#
 
 end #module

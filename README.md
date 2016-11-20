@@ -39,4 +39,4 @@ SpiceData currently supports the following SPICE file formats:
 
 Extensive compatibility testing of SpiceData.jl has not been performed.  The module has been tested using the following environment(s):
 
- - Linux / Julia-0.4.5 (64-bit)
+ - Linux / Julia-0.5.0 (64-bit)

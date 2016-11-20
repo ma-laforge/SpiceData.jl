@@ -62,10 +62,10 @@ Endianness{E<:Endianness}(::BlockReader{E}) = E
 
 #TODO: Not sure if the SpiceTags are named correctly:
 type SpiceTags
-	id::ASCIIString
-	date::ASCIIString
-	time::ASCIIString
-	comments::ASCIIString
+	id::String
+	date::String
+	time::String
+	comments::String
 end
 SpiceTags() = SpiceTags("", "", "", "")
 
@@ -73,10 +73,10 @@ SpiceTags() = SpiceTags("", "", "", "")
 #-------------------------------------------------------------------------------
 type DataReader
 	io::IOStream
-	filepath::AbstractString #Informative only
+	filepath::String #Informative only
 	format::SpiceFormat
-	sweepname::ASCIIString
-	signalnames::Vector{ASCIIString}
+	sweepname::String
+	signalnames::Vector{String}
 	sweep::Vector
 	tags::SpiceTags
 	datastart::Int
@@ -104,7 +104,7 @@ end
 #==Helper Functions
 ===============================================================================#
 
-printable(v::ASCIIString) = isprint(v)? v: ""
+printable(v::String) = isprint(v)? v: ""
 
 #Debug: show block header info
 function _show(io::IO, hdr::BlockHeader, pos::Int)
@@ -199,34 +199,35 @@ function _read{E, T<:Number}(r::BlockReader{E}, ::Type{T})
 end
 
 #Read in fixed-length string:
-function _read(r::BlockReader, ::Type{ASCIIString}, nchars::Int)
+function _read(r::BlockReader, ::Type{String}, nchars::Int)
 	if !canread(r, nchars)
 		throw(stringboundary_exception(r.io))
 	end
 	buf = Array(UInt8, nchars)
 	readbytes!(r.io, buf)
-	return bytestring(buf)
+	return String(buf)
 end
 
 #Read in space-delimited string:
 function readsigname(r::BlockReader)
+	const DELIM = UInt8(' ')
 	buf = Array(UInt8, SIGNAME_BUFSIZE)
 
 	#TODO: improve test?
-	isnamechar(v::UInt8) = (v != ' ')
+	isdelim(v::UInt8) = (v != DELIM)
 
-	lastchar = ' '
-	while ' ' == lastchar
+	lastchar = DELIM
+	while DELIM == lastchar
 		lastchar = _read(r, UInt8)
 	end
 
-	if !isnamechar(lastchar)
+	if !isdelim(lastchar)
 		hpos = hex(position(r.io)-1)
 		throw("Invalid string @ 0x$hpos")
 	end
 
 	i = 1
-	while isnamechar(lastchar)
+	while isdelim(lastchar)
 		buf[i] = lastchar
 		lastchar = _read(r, UInt8)
 		i+=1
@@ -236,7 +237,7 @@ function readsigname(r::BlockReader)
 	end
 
 	buf[i] = 0
-	return bytestring(pointer(buf))
+	return unsafe_string(pointer(buf))
 end
 
 
@@ -266,7 +267,7 @@ end
 
 #Read in SPICE data file format:
 function _read(r::BlockReader, ::Type{SpiceFormat})
-	versiontxt = strip(_read(r, ASCIIString, 8))
+	versiontxt = strip(_read(r, String, 8))
 
 	try
 		version = parse(Int, versiontxt)
@@ -288,7 +289,7 @@ end
 #Read in signal names:
 function readnames(r::BlockReader, datacolumns::Int)
 	for i in 1:datacolumns
-		sigtype = _read(r, ASCIIString, 8)
+		sigtype = _read(r, String, 8)
 		try
 			parse(Int, sigtype)
 		catch
@@ -301,7 +302,7 @@ function readnames(r::BlockReader, datacolumns::Int)
 	sweepname = readsigname(r)
 	nsigs = datacolumns - 1
 
-	signalnames = Array(ASCIIString, nsigs)
+	signalnames = Array(String, nsigs)
 	for i in 1:length(signalnames)
 		signalnames[i] = readsigname(r)
 	end
@@ -365,17 +366,17 @@ function readsignal(r::DataReader, signum::Int)
 end
 
 #Read in a SPICE file from path:
-function _open(filepath::AbstractString)
+function _open(filepath::String)
 	io = open(filepath, "r")
 	endianness = _read(io, Endianness)
 	blkreader = BlockReader(io, endianness, start=0)
 
 	#Read in signal counts:
-	count1 = _read(blkreader, ASCIIString, 4)
+	count1 = _read(blkreader, String, 4)
 	#What are other counts for? Are they counts?
-	count2 = _read(blkreader, ASCIIString, 4)
-	count3 = _read(blkreader, ASCIIString, 4)
-	count4 = _read(blkreader, ASCIIString, 4)
+	count2 = _read(blkreader, String, 4)
+	count3 = _read(blkreader, String, 4)
+	count4 = _read(blkreader, String, 4)
 
 	try
 		count1 = parse(Int, count1)
@@ -390,10 +391,10 @@ function _open(filepath::AbstractString)
 
 	#Read in "tags":
 	header = SpiceTags(
-		strip(_read(blkreader, ASCIIString, 4*16)), #id
-		strip(_read(blkreader, ASCIIString, 16)), #date
-		strip(_read(blkreader, ASCIIString, 8)), #time
-		strip(_read(blkreader, ASCIIString, 4*16+8)) #comments
+		strip(_read(blkreader, String, 4*16)), #id
+		strip(_read(blkreader, String, 16)), #date
+		strip(_read(blkreader, String, 8)), #time
+		strip(_read(blkreader, String, 4*16+8)) #comments
 	)
 
 	#Read in signal names:
@@ -420,10 +421,10 @@ end
 
 #==Higher-level interface
 ===============================================================================#
-#_open(filepath::AbstractString)
+#_open(filepath::String)
 Base.names(r::DataReader) = r.signalnames
 Base.read(r::DataReader, signum::Int) = readsignal(r, signum)
-function Base.read(r::DataReader, signame::ASCIIString)
+function Base.read(r::DataReader, signame::String)
 	signum = findfirst(r.signalnames, signame)
 	if signum < 1
 		throw("Signal not found: $signame.")

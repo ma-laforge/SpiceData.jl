@@ -6,7 +6,7 @@ include("importCppSimData.jl")
 
 #No real test code yet... just demonstrate use:
 
-testpath(testfile::AbstractString) = joinpath(CppSimData.rootpath, "core/data", testfile)
+testpath(testfile::String) = joinpath(CppSimData.rootpath, "core/data", testfile)
 
 testfile = "test.tr0"
 filepath = testpath(testfile)
