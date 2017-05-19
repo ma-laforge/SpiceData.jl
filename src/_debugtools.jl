@@ -3,7 +3,7 @@ module Tr0Tools
 
 #==Aliases
 ===============================================================================#
-typealias DataWord UInt32
+const DataWord = UInt32
 
 
 #==Constants

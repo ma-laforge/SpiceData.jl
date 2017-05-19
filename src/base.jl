@@ -4,7 +4,7 @@
 
 #==Aliases
 ===============================================================================#
-typealias DataWord UInt32
+const DataWord = UInt32
 
 
 #==Constants
@@ -26,16 +26,16 @@ const SWEEPDATA_LASTPOINT = 1e30 #Can detect end of data with this.
 
 #==Main Types
 ===============================================================================#
-abstract Endianness #Of data file
+abstract type Endianness end #Of data file
 immutable BigEndian <: Endianness; end
 immutable LittleEndian <: Endianness; end
-typealias NetworkEndianness BigEndian #Informative only
+const NetworkEndianness = BigEndian #Informative only
 #=Comment:
 Apparently SPICE files used to use network endianness (big-endian), but are now
 little-endian.
 =#
 
-abstract SpiceFormat
+abstract type SpiceFormat end
 immutable Format_Unknown <: SpiceFormat; end
 immutable Format_9601 <: SpiceFormat; end #x: 32-bit floats, y: 32-bit floats
 immutable Format_9602 <: SpiceFormat; end #x: 64-bit floats, y: 64-bit floats
@@ -164,7 +164,7 @@ function nextblock{E}(r::BlockReader{E})
 	seek(r.io, r.endpos)
 	sz = _read(r.io, DataWord, E())
 	if sz != r.header._size
-		hpos = hex(position(r.io) - 1)_
+		hpos = hex(position(r.io) - 1)
 		throw("Inconsistent block size @ 0x$hpos.")
 	end
 	r.header = _read(r.io, BlockHeader, E())
