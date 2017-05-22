@@ -203,7 +203,7 @@ function _read(r::BlockReader, ::Type{String}, nchars::Int)
 	if !canread(r, nchars)
 		throw(stringboundary_exception(r.io))
 	end
-	buf = Array(UInt8, nchars)
+	buf = Array{UInt8}(nchars)
 	readbytes!(r.io, buf)
 	return String(buf)
 end
@@ -211,7 +211,7 @@ end
 #Read in space-delimited string:
 function readsigname(r::BlockReader)
 	const DELIM = UInt8(' ')
-	buf = Array(UInt8, SIGNAME_BUFSIZE)
+	buf = Array{UInt8}(SIGNAME_BUFSIZE)
 
 	#TODO: improve test?
 	isdelim(v::UInt8) = (v != DELIM)
@@ -302,7 +302,7 @@ function readnames(r::BlockReader, datacolumns::Int)
 	sweepname = readsigname(r)
 	nsigs = datacolumns - 1
 
-	signalnames = Array(String, nsigs)
+	signalnames = Array{String}(nsigs)
 	for i in 1:length(signalnames)
 		signalnames[i] = readsigname(r)
 	end
@@ -348,7 +348,7 @@ function readsweep(r::BlockReader, fmt::SpiceFormat, rowsize::Int)
 	sz = filesize(r.io)
 	estimatedlen = div(sz - curpos, rowsize)
 
-	data = Array(xtype(fmt), estimatedlen)
+	data = Array{xtype(fmt)}(estimatedlen)
 	return readsignal!(r, data, 0, rowsize)
 end
 
@@ -361,7 +361,7 @@ function readsignal(r::DataReader, signum::Int)
 	blkreader = BlockReader(r.io, r.endianness, start=r.datastart)
 	_xtype = xtype(r.format); _ytype = ytype(r.format)
 	offset = sizeof(_xtype) + (signum-1) * sizeof(_ytype)
-	data = Array(_ytype, length(r.sweep))
+	data = Array{_ytype}(length(r.sweep))
 	return readsignal!(blkreader, data, offset, r.rowsize)
 end
 
