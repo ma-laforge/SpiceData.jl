@@ -27,8 +27,8 @@ const SWEEPDATA_LASTPOINT = 1e30 #Can detect end of data with this.
 #==Main Types
 ===============================================================================#
 abstract type Endianness end #Of data file
-immutable BigEndian <: Endianness; end
-immutable LittleEndian <: Endianness; end
+struct BigEndian <: Endianness; end
+struct LittleEndian <: Endianness; end
 const NetworkEndianness = BigEndian #Informative only
 #=Comment:
 Apparently SPICE files used to use network endianness (big-endian), but are now
@@ -36,21 +36,21 @@ little-endian.
 =#
 
 abstract type SpiceFormat end
-immutable Format_Unknown <: SpiceFormat; end
-immutable Format_9601 <: SpiceFormat; end #x: 32-bit floats, y: 32-bit floats
-immutable Format_9602 <: SpiceFormat; end #x: 64-bit floats, y: 64-bit floats
-immutable Format_2001 <: SpiceFormat; end #x: 64-bit floats, y: 64-bit floats
-immutable Format_2013 <: SpiceFormat; end #x: 64-bit floats, y: 32-bit floats
+struct Format_Unknown <: SpiceFormat; end
+struct Format_9601 <: SpiceFormat; end #x: 32-bit floats, y: 32-bit floats
+struct Format_9602 <: SpiceFormat; end #x: 64-bit floats, y: 64-bit floats
+struct Format_2001 <: SpiceFormat; end #x: 64-bit floats, y: 64-bit floats
+struct Format_2013 <: SpiceFormat; end #x: 64-bit floats, y: 32-bit floats
 #=Comment:
 I believe 9602 is a non-standard format used by CppSim.
 =#
 
-immutable BlockHeader
+struct BlockHeader
 	typeid::DataWord #TODO: is this really type id?
 	_size::DataWord #Number of bits in current block
 end
 
-type BlockReader{T<:Endianness}
+mutable struct BlockReader{T<:Endianness}
 	io::IO
 	header::BlockHeader
 	endpos::Int
@@ -61,7 +61,7 @@ end
 Endianness{E<:Endianness}(::BlockReader{E}) = E
 
 #TODO: Not sure if the SpiceTags are named correctly:
-type SpiceTags
+mutable struct SpiceTags
 	id::String
 	date::String
 	time::String
@@ -71,7 +71,7 @@ SpiceTags() = SpiceTags("", "", "", "")
 
 #SPICE file reader: Main object
 #-------------------------------------------------------------------------------
-type DataReader
+mutable struct DataReader
 	io::IOStream
 	filepath::String #Informative only
 	format::SpiceFormat

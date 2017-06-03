@@ -13,7 +13,7 @@ const WRITEBLOCK_SYNCWORD = DataWord(0x4)
 
 #==Main Types
 ===============================================================================#
-immutable BlockHeader
+struct BlockHeader
 	_type::DataWord
 	_size::DataWord
 end
