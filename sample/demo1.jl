@@ -5,6 +5,7 @@ using SpiceData
 include("importCppSimData.jl")
 
 #No real test code yet... just demonstrate use:
+stdout_ct = IOContext(stdout, :compact=>true)
 
 testpath(testfile::String) = joinpath(CppSimData.rootpath, "core/data", testfile)
 
@@ -13,6 +14,9 @@ filepath = testpath(testfile)
 println("\nLoad $filepath:")
 reader = SpiceData._open(filepath)
 @show(reader)
+println("\nCompact output:")
+show(stdout_ct, reader)
+println("\n")
 
 println("\nRead in list of signal names:")
 @show names(reader)

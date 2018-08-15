@@ -4,20 +4,21 @@
 Base.show(io::IO, ::BigEndian) = print(io, "BigEndian")
 Base.show(io::IO, ::LittleEndian) = print(io, "LittleEndian")
 
-Base.showcompact(io::IO, ::SpiceFormat) = print(io, "Format:Unknown")
-Base.showcompact(io::IO, ::Format_9601) = print(io, "SPICE:9601")
-Base.showcompact(io::IO, ::Format_9602) = print(io, "CppSim:9602")
-Base.showcompact(io::IO, ::Format_2001) = print(io, "SPICE:2001")
-Base.showcompact(io::IO, ::Format_2013) = print(io, "SPICE:2013")
+_showcompact(io::IO, ::SpiceFormat) = print(io, "Format:Unknown")
+_showcompact(io::IO, ::Format_9601) = print(io, "SPICE:9601")
+_showcompact(io::IO, ::Format_9602) = print(io, "CppSim:9602")
+_showcompact(io::IO, ::Format_2001) = print(io, "SPICE:2001")
+_showcompact(io::IO, ::Format_2013) = print(io, "SPICE:2013")
 
-Base.show(io::IO, fmt::Format_Unknown) = showcompact(io, fmt)
+Base.show(io::IO, fmt::Format_Unknown) = _showcompact(io, fmt)
 
 function Base.show(io::IO, fmt::SpiceFormat)
-	showcompact(io, fmt)
+	_showcompact(io, fmt)
 	print(io, " (x: $(xtype(fmt))[], y: $(ytype(fmt))[])")
 end
 
-function Base.showcompact(io::IO, r::DataReader)
+function _show(io::IO, r::DataReader, compact::Bool = false)
+	#Base (compact) information:
 	print(io, DataReader, "(")
 	print(io, basename(r.filepath))
 	print(io, ", nsig=", length(r.signalnames))
@@ -25,10 +26,9 @@ function Base.showcompact(io::IO, r::DataReader)
 	print(io, ", ")
 	print(io, r.format)
 	print(io, ")")
-end
+	if compact; return; end
 
-function Base.show(io::IO, r::DataReader)
-	showcompact(io, r)
+	#Extended information:
 	println(io)
 	print(io, ">> (", r.endianness, ")")
 	print(io, " sweep = '", r.sweepname, "'")
@@ -38,5 +38,8 @@ function Base.show(io::IO, r::DataReader)
 	println(io, ">> ", tags.id)
 	println(io, ">> ", tags.comments)	
 end
+
+Base.show(io::IO, r::DataReader) = _show(io, r)
+Base.show(io::IOContext, r::DataReader) = _show(io, r, haskey(io.dict, :compact))
 
 #End
