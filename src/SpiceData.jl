@@ -1,5 +1,10 @@
 #SpiceData: A pure Julia SPICE data reader
 #-------------------------------------------------------------------------------
+#=
+TAGS:
+	#WANTCONST, HIDEWARN_0.7
+=#
+
 module SpiceData
 
 include("base.jl")

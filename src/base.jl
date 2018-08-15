@@ -58,7 +58,7 @@ end
 #NOTE: Parameterized so we can specialize (dispatch) on endianness.
 
 #Convenience:
-Endianness{E<:Endianness}(::BlockReader{E}) = E
+Endianness(::BlockReader{E}) where E<:Endianness = E
 
 #TODO: Not sure if the SpiceTags are named correctly:
 mutable struct SpiceTags
@@ -104,7 +104,7 @@ end
 #==Helper Functions
 ===============================================================================#
 
-printable(v::String) = isprint(v)? v: ""
+printable(v::String) = isprint(v) ? v : ""
 
 #Debug: show block header info
 function _show(io::IO, hdr::BlockHeader, pos::Int)
@@ -130,12 +130,12 @@ xtype(::Format_2013) = Float64
 ytype(::Format_2013) = Float32
 
 #-------------------------------------------------------------------------------
-_reorder{T}(v::T, ::BigEndian) = ntoh(v)
-_reorder{T}(v::T, ::LittleEndian) = ltoh(v)
+_reorder(v::T, ::BigEndian) where T = ntoh(v)
+_reorder(v::T, ::LittleEndian) where T = ltoh(v)
 
 #IO reads
 #-------------------------------------------------------------------------------
-_read{T<:Real}(io::IO, ::Type{T}, endianness::Endianness) =
+_read(io::IO, ::Type{T}, endianness::Endianness) where T<:Real =
 	_reorder(read(io, T), endianness)
 
 #Read in a WRITEBLOCK_SYNCWORD & validate:
@@ -160,7 +160,7 @@ end
 bytesleft(r::BlockReader) = (r.endpos - position(r.io))
 canread(r::BlockReader, nbytes::Int) = bytesleft(r) >= nbytes
 
-function nextblock{E}(r::BlockReader{E})
+function nextblock(r::BlockReader{E}) where E
 	seek(r.io, r.endpos)
 	sz = _read(r.io, DataWord, E())
 	if sz != r.header._size
@@ -184,7 +184,7 @@ function _skip(r::BlockReader, offset::Int)
 	end
 end
 
-function _read{E, T<:Number}(r::BlockReader{E}, ::Type{T})
+function _read(r::BlockReader{E}, ::Type{T}) where {E, T<:Number}
 	#NOTE: don't check if bytesleft<0... checked by reading BlockHeader
 	if bytesleft(r) < 1
 		nextblock(r)
@@ -203,15 +203,15 @@ function _read(r::BlockReader, ::Type{String}, nchars::Int)
 	if !canread(r, nchars)
 		throw(stringboundary_exception(r.io))
 	end
-	buf = Array{UInt8}(nchars)
+	buf = Array{UInt8}(undef, nchars)
 	readbytes!(r.io, buf)
 	return String(buf)
 end
 
 #Read in space-delimited string:
 function readsigname(r::BlockReader)
-	const DELIM = UInt8(' ')
-	buf = Array{UInt8}(SIGNAME_BUFSIZE)
+	DELIM = UInt8(' ') #WANTCONST
+	buf = Array{UInt8}(undef, SIGNAME_BUFSIZE)
 
 	#TODO: improve test?
 	isdelim(v::UInt8) = (v != DELIM)
@@ -280,6 +280,7 @@ function _read(r::BlockReader, ::Type{SpiceFormat})
 		elseif 2013 == version
 			return Format_2013()
 		end
+	catch
 	end
 
 	versiontxt = printable(versiontxt)
@@ -302,7 +303,7 @@ function readnames(r::BlockReader, datacolumns::Int)
 	sweepname = readsigname(r)
 	nsigs = datacolumns - 1
 
-	signalnames = Array{String}(nsigs)
+	signalnames = Array{String}(undef, nsigs)
 	for i in 1:length(signalnames)
 		signalnames[i] = readsigname(r)
 	end
@@ -311,7 +312,7 @@ function readnames(r::BlockReader, datacolumns::Int)
 end
 
 #Read in signal data to vector d.
-function readsignal!{T}(r::BlockReader, d::Vector{T}, offset::Int, rowsize::Int)
+function readsignal!(r::BlockReader, d::Vector{T}, offset::Int, rowsize::Int) where T
 	rowskip = rowsize - sizeof(T)
 	_skip(r, offset)
 	lastrowcomplete = false
@@ -328,6 +329,7 @@ function readsignal!{T}(r::BlockReader, d::Vector{T}, offset::Int, rowsize::Int)
 			_skip(r, rowskip)
 			lastrowcomplete = true
 		end
+	catch
 	end
 
 	#When reading main sweep (offset == 0):
@@ -348,7 +350,7 @@ function readsweep(r::BlockReader, fmt::SpiceFormat, rowsize::Int)
 	sz = filesize(r.io)
 	estimatedlen = div(sz - curpos, rowsize)
 
-	data = Array{xtype(fmt)}(estimatedlen)
+	data = Array{xtype(fmt)}(undef, estimatedlen)
 	return readsignal!(r, data, 0, rowsize)
 end
 
@@ -361,7 +363,7 @@ function readsignal(r::DataReader, signum::Int)
 	blkreader = BlockReader(r.io, r.endianness, start=r.datastart)
 	_xtype = xtype(r.format); _ytype = ytype(r.format)
 	offset = sizeof(_xtype) + (signum-1) * sizeof(_ytype)
-	data = Array{_ytype}(length(r.sweep))
+	data = Array{_ytype}(undef, length(r.sweep))
 	return readsignal!(blkreader, data, offset, r.rowsize)
 end
 
@@ -425,8 +427,8 @@ end
 Base.names(r::DataReader) = r.signalnames
 Base.read(r::DataReader, signum::Int) = readsignal(r, signum)
 function Base.read(r::DataReader, signame::String)
-	signum = findfirst(r.signalnames, signame)
-	if signum < 1
+	signum = findfirst(isequal(signame), r.signalnames)
+	if nothing == signum
 		throw("Signal not found: $signame.")
 	end
 	return readsignal(r, signum)
