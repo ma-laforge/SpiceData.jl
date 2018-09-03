@@ -1,5 +1,7 @@
 #SpiceData: A pure Julia SPICE data reader
 #-------------------------------------------------------------------------------
+__precompile__(true)
+
 #=
 TAGS:
 	#WANTCONST, HIDEWARN_0.7
