@@ -85,6 +85,25 @@ mutable struct DataReader
 end
 
 
+#==Helper Functions
+===============================================================================#
+
+hex(x::Integer) = string(x, base=16)
+printable(v::String) = isprint(v) ? v : ""
+_reorder(v::T, ::BigEndian) where T = ntoh(v)
+_reorder(v::T, ::LittleEndian) where T = ltoh(v)
+
+#Debug: show block header info
+function _show(io::IO, hdr::BlockHeader, pos::Int)
+	print(io, "Block: 0x", hex(WRITEBLOCK_SYNCWORD))
+	print(io, " 0x", hex(hdr.typeid))
+	print(io, " 0x", hex(WRITEBLOCK_SYNCWORD))
+	print(io, " 0x", hex(hdr._size))
+	print(io, " (start 0x", hex(pos), ")")
+	println(io)
+end
+
+
 #==Exceptions
 ===============================================================================#
 function corruptword_exception(io::IO, w::DataWord, expected::DataWord)
@@ -101,20 +120,8 @@ function stringboundary_exception(io::IO, )
 end
 
 
-#==Helper Functions
+#==
 ===============================================================================#
-
-printable(v::String) = isprint(v) ? v : ""
-
-#Debug: show block header info
-function _show(io::IO, hdr::BlockHeader, pos::Int)
-	print(io, "Block: 0x", hex(WRITEBLOCK_SYNCWORD))
-	print(io, " 0x", hex(hdr.typeid))
-	print(io, " 0x", hex(WRITEBLOCK_SYNCWORD))
-	print(io, " 0x", hex(hdr._size))
-	print(io, " (start 0x", hex(pos), ")")
-	println(io)
-end
 
 #-------------------------------------------------------------------------------
 xtype(::Format_9601) = Float32
@@ -129,9 +136,6 @@ ytype(::Format_2001) = Float64
 xtype(::Format_2013) = Float64
 ytype(::Format_2013) = Float32
 
-#-------------------------------------------------------------------------------
-_reorder(v::T, ::BigEndian) where T = ntoh(v)
-_reorder(v::T, ::LittleEndian) where T = ltoh(v)
 
 #IO reads
 #-------------------------------------------------------------------------------
